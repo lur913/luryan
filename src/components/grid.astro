@@ -1,0 +1,135 @@
+---
+/**
+ * 网格组件
+ * @param {number} rows - 网格行数，默认为5
+ * @param {number} columns - 网格列数，默认为5
+ * @param {string} backgroundColor - 背景颜色，默认为黑色
+ * @param {string} gridColor - 网格线颜色，默认为半透明白色
+ * @param {string} dotColor - 交叉点颜色，默认为白色
+ * @param {number} size - 网格大小（像素），默认为900px
+ * @param {number} cellSize - 单个格子大小（像素），默认自动计算
+ */
+interface Props {
+  rows?: number;
+  columns?: number;
+  backgroundColor?: string;
+  gridColor?: string;
+  dotColor?: string;
+  size?: number;
+  cellSize?: number;
+}
+
+const {
+  rows = 5,
+  columns = 5,
+  backgroundColor = "#000",
+  gridColor = "rgba(255, 255, 255, 0.1)",
+  dotColor = "rgba(255, 255, 255, 0.8)",
+  size = 900,
+  cellSize
+} = Astro.props;
+
+// 计算单元格大小
+const calculatedCellSize = cellSize || size / Math.max(rows, columns);
+
+// 创建网格线和交叉点数组
+const horizontalLines = Array.from({length: rows + 1}).map((_, index) => index);
+const verticalLines = Array.from({length: columns + 1}).map((_, index) => index);
+
+// 定义交叉点类型
+type IntersectionPoint = {
+  row: number;
+  col: number;
+  top: number;
+  left: number;
+};
+
+const intersectionPoints: IntersectionPoint[] = [];
+
+// 计算交叉点位置（使用固定像素值）
+for (let row = 0; row <= rows; row++) {
+  for (let col = 0; col <= columns; col++) {
+    intersectionPoints.push({
+      row: row,
+      col: col,
+      top: row * calculatedCellSize,
+      left: col * calculatedCellSize
+    });
+  }
+}
+---
+
+<div class="grid-background">
+  <div class="grid-container">
+    <!-- 创建水平线 -->
+    {horizontalLines.map((index) => (
+      <div class="horizontal-line" style={`top: ${index * calculatedCellSize}px`}></div>
+    ))}
+    
+    <!-- 创建垂直线 -->
+    {verticalLines.map((index) => (
+      <div class="vertical-line" style={`left: ${index * calculatedCellSize}px`}></div>
+    ))}
+    
+    <!-- 创建交叉点 -->
+    {intersectionPoints.map((point: IntersectionPoint) => (
+      <div 
+        class="intersection-point" 
+        style={`top: ${point.top}px; left: ${point.left}px`}
+      ></div>
+    ))}
+  </div>
+</div>
+
+<style define:vars={{
+  backgroundColor,
+  gridColor,
+  dotColor,
+  rows,
+  columns,
+  size: `${size}px`,
+  cellSize: `${calculatedCellSize}px`
+}}>
+  .grid-background {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--backgroundColor);
+    opacity: .5;
+    overflow: hidden;
+  }
+
+  .grid-container {
+    position: relative;
+    width: var(--size);
+    height: var(--size);
+  }
+
+  .horizontal-line {
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    background: var(--gridColor);
+  }
+
+  .vertical-line {
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background: var(--gridColor);
+  }
+
+  .intersection-point {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--dotColor);
+    border-radius: 50%;
+    opacity: .3;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px var(--dotColor),
+                0 0 20px rgba(255, 255, 255, 0.4);
+  }
+</style> 
